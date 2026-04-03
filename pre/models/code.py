@@ -149,19 +149,48 @@ class chip_8:
                 x_pos=self.v[x]%64
                 y_pos=self.v[y]%32
                 self.v[0xF]=0
+                for ligne in range(N):
+                    octet=self.memoir[self.I+ligne]
+                    for bit in range(8):
+                        if(octet & (0x80 > bit))!=0:
+                            posX=(x_pos+bit)%64
+                            posY=(y_pos+bit)%32
+                            index=posX+(posY*64)
+                            if self.ecran[index]==1:
+                                self.v[0xF]=1
+                            self.ecran[index]^=1
            
             case 0xE:
                 match NN:
                     case 0x9E:
+                        if self.etat_touche[self.v[x]]==True:
+                            self.pc+=2
+                    case 0xA1:
+                        if self.etat_touche[self.v[x]]==False:
+                            self.pc+=2
+                    case _:
+            
+                        print(f"instruction non gérée : {hex(opcode)}")
 
-   def jeux (self):
-    pygame.init()
-    pygame.display.set_mode((640,320))
-    clock=pygame.time.Clock()
-    On=True
-    while On:
-        On=self.update_clavier()
-        self.cycle()
-        clock.tick(500)
-    pygame.quit()
-    print("programme fermer") 
+            case 0xF:
+                match NN:
+                    case 0x0A:
+                        pass
+                    case _:
+                        print(f"instruction non gérée : {hex(opcode)}")
+
+            case _:
+                print(f"instruction non gérée : {hex(opcode)}")
+                    
+
+    def jeux (self):
+        pygame.init()
+        pygame.display.set_mode((640,320))
+        clock=pygame.time.Clock()
+        On=True
+        while On:
+            On=self.update_clavier()
+            self.cycle()
+            clock.tick(500)
+        pygame.quit()
+        print("programme fermer") 
