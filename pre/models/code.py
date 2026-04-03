@@ -1,7 +1,6 @@
 import pygame
 import sys
 from random import randint
-
 sprite=[
     0xF0, 0x90, 0x90, 0x90, 0xF0, 0x20, 0x60, 0x20, 0x20, 0x70, # 0 et 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, 0xF0, 0x10, 0xF0, 0x10, 0xF0, # 2 et 3
@@ -24,10 +23,31 @@ class chip_8:
         self.ecran=[0]*(64*32)
         self.delay_timer=0
         self.sound_timer=0
+        
+        self.touche={
+        pygame.K_1: 0x1, pygame.K_2: 0x2, pygame.K_3: 0x3, pygame.K_4: 0xC,
+        pygame.K_a: 0x4, pygame.K_z: 0x5, pygame.K_e: 0x6, pygame.K_r: 0xD,
+        pygame.K_q: 0x7, pygame.K_s: 0x8, pygame.K_d: 0x9, pygame.K_f: 0xE,
+        pygame.K_w: 0xA, pygame.K_x: 0x0, pygame.K_c: 0xB, pygame.K_v: 0xF}
+        self.etat_touche=[False]*16 # False = relaché  true appuyer
 
         for i in range(len(sprite)):
             self.memoir[i]=sprite[i]
 
+
+    def update_clavier(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+                    
+            if event.type == pygame.KEYDOWN:
+                if event.key in self.touche_map:
+                    self.etat_touche[self.touche_map[event.key]] = True
+            
+            if event.type == pygame.KEYUP:
+                if event.key in self.touche_map:
+                    self.etat_touche[self.touche_map[event.key]] = False
+        return True
         
     def cycle (self):
         opcode=(self.memoir[self.pc]<<8) | self.memoir[self.pc]
@@ -37,12 +57,12 @@ class chip_8:
         N=(opcode&0x000F)
         NN=(opcode&0x00FF)
         NNN=(opcode&0x0FFF)
-
+        self.pc+=2
         match t: # trouve la commande a exécuter
             case 0x0: # reset le tab
                 if NN==0xE0:
                     self.ecran=[0]*(64*32)
-                elif nn==0xEE: #sort d'une sous routine
+                elif NN==0xEE: #sort d'une sous routine
                     self.SP-=1
                     self.pc=self.stack[self.SP] 
             case 0x1:
@@ -130,3 +150,18 @@ class chip_8:
                 y_pos=self.v[y]%32
                 self.v[0xF]=0
            
+            case 0xE:
+                match NN:
+                    case 0x9E:
+
+   def jeux (self):
+    pygame.init()
+    pygame.display.set_mode((640,320))
+    clock=pygame.time.Clock()
+    On=True
+    while On:
+        On=self.update_clavier()
+        self.cycle()
+        clock.tick(500)
+    pygame.quit()
+    print("programme fermer") 
